@@ -1,0 +1,36 @@
+# Plot: aparc
+```{r}
+rm(list = ls())
+library(tidyverse)
+library(ggseg)
+
+plot(dk)
+
+dat <- readxl::read_xlsx("~/Desktop/可视化/Forward AD 20241202.xlsx", sheet = 'Test Forward AD Sig263') %>% 
+  dplyr::filter(`总分类` == '1 结构性指标（Structural Measures）', `Category name` == 'cortical thickness', IDP == 'aparc') %>% 
+  dplyr::select(exposure = all_of('exposure region'), b, `or`) %>% 
+  mutate(exposure = str_replace_all(exposure, '(aparc-Desikan)|(thickness)|\\s+', ''))
+dat
+
+dat.plt <- dk$data %>% 
+  as.tibble() %>% 
+  dplyr::select(label) %>% 
+  mutate(exposure = str_replace_all(label, '_', '')) %>% 
+  right_join(dat, by = 'exposure') %>% 
+  dplyr::select(-exposure)
+dat.plt
+
+
+ggplot(data = dat.plt) +
+  geom_brain(atlas = dk, mapping = aes(fill = b), position = position_brain(side ~ hemi)) +
+  scale_fill_gradient2(mid = 'white', midpoint = 0, low = 'blue', high = 'red', na.value = 'grey90') +
+  theme_void()
+ggsave('fig_desc-beta_StructuralMeasures_CorticalThickness.pdf', height = 4, width = 8)
+
+ggplot(data = dat.plt) +
+  geom_brain(atlas = dk, mapping = aes(fill = or), position = position_brain(side ~ hemi)) +
+  scale_fill_gradient2(mid = '#E2C64A', midpoint = 1, low = '#68A3B6', high = '#DE4223', na.value = 'grey90') +
+  theme_void()
+ggsave('fig_desc-or_StructuralMeasures_CorticalThickness.pdf', height = 4, width = 8)
+```
+
